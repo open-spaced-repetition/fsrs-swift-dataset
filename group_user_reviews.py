@@ -8,6 +8,8 @@ def process_group(user_group):
     user, group = user_group
     if len(group) < 1000:
         return
+    if len(group[group["i"] == 2]) < 100:
+        return
     group[["card_id", "review_time", "i", "rating", "duration"]].sort_values(
         by=["card_id", "review_time"]
     ).to_csv(f"./dataset/{user}.csv", index=False)

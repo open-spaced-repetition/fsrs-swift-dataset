@@ -1,6 +1,7 @@
 import pandas as pd
 import pyarrow as pa  # type: ignore
 import pyarrow.parquet as pq  # type: ignore
+from tqdm.auto import tqdm  # type: ignore
 from pathlib import Path
 
 
@@ -49,8 +50,8 @@ def process_and_save(file_path: Path, id_mapper: IdMapper) -> None:
     df["elapsed_days"] = df.real_days.diff().fillna(0)
     df["elapsed_seconds"] = (df["review_time"].diff().fillna(0) / 1000).astype("int64")
     df["i"] = df.groupby("card_id").cumcount() + 1
-    df.loc[df["i"] == 1, "elapsed_days"] = 0
-    df.loc[df["i"] == 1, "elapsed_seconds"] = 0
+    df.loc[df["i"] == 1, "elapsed_days"] = -1
+    df.loc[df["i"] == 1, "elapsed_seconds"] = -1
     df["card_id"] = id_mapper.factorize(df["card_id"], "card_id")
     df.sort_values(by="review_time", inplace=True)
     df_to_save = df[
@@ -67,9 +68,8 @@ def process_and_save(file_path: Path, id_mapper: IdMapper) -> None:
 
 def main() -> None:
     id_mapper = IdMapper()
-    for file_path in Path("./dataset").glob("*.csv"):
+    for file_path in tqdm(Path("./dataset").glob("*.csv")):
         process_and_save(file_path, id_mapper)
-
 
 
 if __name__ == "__main__":
